@@ -34,7 +34,17 @@ exports = module.exports = class Parser {
                 throw new Error(`Invalid method '${method}()' for type ${valueTypeDefinition.name}`);
             }
             const parameters = this.parseParameters(methodDefinition.signature);
-            value = methodDefinition.definition.apply(this.runtime, [value].concat(parameters));
+            if (this.isStatic(value)) {
+                if (!methodDefinition.static) {
+                    throw Error('Can not call a instance method as a static method');
+                }
+                value = methodDefinition.definition.apply(this.runtime, parameters);
+            } else {
+                if (methodDefinition.static) {
+                    throw Error('Can not call a static method as a instance method');
+                }
+                value = methodDefinition.definition.apply(this.runtime, [value].concat(parameters));
+            }
         }
         return value;
     }
@@ -53,20 +63,18 @@ exports = module.exports = class Parser {
         return parameters;
     }
 
-    getType(value) {
-        const valueType = this.ctx[typeof value];
-        if (!valueType) {
-            throw Error(`Unknown type ${typeof value}`);
-        }
-        return valueType;
-    }
-
     parseValue() {
         switch (this.nextToken.type) {
             case 'string':
             case 'number':
             case 'boolean':
                 break;
+            case 'id':
+                const name = this.parseId();
+                if (!this.ctx[name]) {
+                    throw new Error(`Name ${name} not declared`);
+                }
+                return this.ctx[name];
             default:
                 throw new Error(`Expected value, got ${this.nextToken.type}`);
         }
@@ -79,6 +87,36 @@ exports = module.exports = class Parser {
 
     parseString() {
         return this.match('string').value;
+    }
+
+    getType(value) {
+        const rawType = typeof value;
+        switch (rawType) {
+            case 'number':
+            case 'string':
+            case 'boolean':
+                return this.ctx[rawType]
+            case 'object':
+                if (value.type === 'type') {
+                    return value;
+                }
+        }
+        throw Error(`Unknown type ${typeof value}`);
+    }
+
+    isStatic(operand) {
+        const rawType = typeof operand;
+        switch (rawType) {
+            case 'number':
+            case 'string':
+            case 'boolean':
+                return false;
+            case 'object':
+                if (operand.type === 'type') {
+                    return true;
+                }
+        }
+        throw Error(`Unknown type ${typeof operand}`);
     }
 
     match(expected) {

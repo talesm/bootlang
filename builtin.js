@@ -28,6 +28,44 @@ exports.number = {
             signature: [],
             returns: 'string',
             definition: n => n.toString()
+        },
+        add: {
+            type: 'function',
+            signature: ['number'],
+            returns: 'number',
+            definition: (a, b) => a + b,
+        },
+        sub: {
+            type: 'function',
+            signature: ['number'],
+            returns: 'number',
+            definition: (a, b) => a - b,
+        },
+        equals: {
+            type: 'function',
+            signature: ['number'],
+            returns: 'boolean',
+            definition: (a, b) => a === b
+        },
+        isAfter: {
+            type: 'function',
+            signature: ['number'],
+            returns: 'boolean',
+            definition: (a, b) => a > b
+        },
+        isBefore: {
+            type: 'function',
+            signature: ['number'],
+            returns: 'boolean',
+            definition: (a, b) => a < b
+        },
+        parseOrPanic: {
+            type: 'function',
+            name: 'parseOrPanic',
+            static: true,
+            signature: ['number'],
+            returns: 'boolean',
+            definition: (s) => +s
         }
     }
 }
