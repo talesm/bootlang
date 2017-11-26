@@ -33,16 +33,32 @@ exports = module.exports = class Parser {
             if (!valueTypeDefinition.methods[method]) {
                 throw new Error(`Invalid method '${method}()' for type ${valueTypeDefinition.name}`);
             }
-            this.match('(');
-            this.match(')');
-            value = methodDefinition.definition(value);
+            const parameters = this.parseParameters(methodDefinition.signature);
+            value = methodDefinition.definition.apply(this.runtime, [value].concat(parameters));
         }
         return value;
     }
 
+    /**
+     * 
+     * @param {string[]} signature 
+     */
+    parseParameters(signature) {
+        const parameters = [];
+        this.match('(');
+        if (this.nextToken.type !== ')') {
+            parameters.push(this.parseMessage());
+        }
+        this.match(')');
+        return parameters;
+    }
+
     getType(value) {
-        const valueType = typeof value;
-        return this.ctx[valueType];
+        const valueType = this.ctx[typeof value];
+        if (!valueType) {
+            throw Error(`Unknown type ${typeof value}`);
+        }
+        return valueType;
     }
 
     parseValue() {

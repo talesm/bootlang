@@ -148,8 +148,11 @@ class Parser {
 Create the auxiliary method:
 ```js
 getType(value) {
-    const valueType = typeof value;
-    return this.ctx[valueType];
+    const valueType = this.ctx[typeof value];
+    if (!valueType) {
+        throw Error(`Unknown type ${typeof value}`);
+    }
+    return valueType;
 }
 ```
 
@@ -184,79 +187,68 @@ Boolean operations
 The basic boolean operations are `and`, `or` and `not`. We also will implement an `equals`, just to be complete.
 
 ```js
-methods: {
-    toString: {
-        type: 'function',
-        signature: ['self'],
-        returns: 'string',
-        value: n => n.toString()
-    },
-    not: {
-        type: 'function',
-        signature: ['self'],
-        returns: 'boolean',
-        value: n => !n
-    },
-    and: {
-        type: 'function',
-        signature: ['self', 'boolean'],
-        returns: 'boolean',
-        value: (a, b) => a && b
-    },
-    or: {
-        type: 'function',
-        signature: ['self', 'boolean'],
-        returns: 'boolean',
-        value: (a, b) => a || b
-    },
-    equals: {
-        type: 'function',
-        signature: ['self', 'boolean'],
-        returns: 'boolean',
-        value: (a, b) => a === b
-    }
+/* replace boolean.methods */
+toString: {
+    type: 'function',
+    name: 'toString',
+    signature: [],
+    returns: 'string',
+    definition: n => n.toString()
+},
+not: {
+    type: 'function',
+    signature: [],
+    returns: 'boolean',
+    value: n => !n
+},
+and: {
+    type: 'function',
+    signature: ['boolean'],
+    returns: 'boolean',
+    value: (a, b) => a && b
+},
+or: {
+    type: 'function',
+    signature: ['boolean'],
+    returns: 'boolean',
+    value: (a, b) => a || b
+},
+equals: {
+    type: 'function',
+    signature: ['boolean'],
+    returns: 'boolean',
+    value: (a, b) => a === b
 }
 ```
 
-But if you test, you will see a problem. We do not yet support messages with parameters, so only the not is actually working. To fix that edit the Parser.parseMessage and replace it as follows:
+But if you test, you will see a problem. We do not yet support messages with parameters, so only the `not()` and `toString()` methods are actually working. To fix that create the following method on parser:
 
 ```js
-parseMessage() {
-    let value = this.parseValue();
-    while (this.nextToken.type === '.') {
-        this.match('.');
-        const method = this.parseId();
-        this.match('(');
-        const parameters = [];
-        if (this.nextToken.type !== ')') {
-            parameters.push(this.parseMessage());
-        }
-        this.match(')');
-        const valueType = typeof value;
-        const valueTypeDefinition = this.ctx[valueType];
-        const methodDefinition = valueTypeDefinition.methods[method]
-        if (methodDefinition) {
-            const signature = methodDefinition.signature;
-            if (signature.length > 0 && signature[0] === 'self') {
-                if (parameters.length + 1 !== signature.length) {
-                    throw new Error(`Expected ${signature.length - 1} parameter(s), got ${parameters.length}`);
-                }
-                for (let i = 0; i < parameters.length; ++i) {
-                    if (typeof parameters[i] !== signature[i + 1]) {
-                        throw new Error(`Expected parameter ${i + 1} of type ${signature[i + 1]}, got ${typeof parameters[i]}`);
-                    }
-                }
-                value = methodDefinition.value.apply(null, [value].concat(parameters));
-            } else {
-                throw new Error('Static messages not implemented yet.');
-            }
-        } else {
-            throw new Error(`Found no such method '${method}()' for type ${valueType}`);
-        }
+parseParameters(signature) {
+    const parameters = [];
+    this.match('(');
+    if (this.nextToken.type !== ')') {
+        parameters.push(this.parseMessage());
     }
-    return value;
+    this.match(')');
+    return parameters;
 }
 ```
+
+Then edit your parseMessage's while to this:
+```js
+const valueTypeDefinition = this.getType(value);
+this.match('.');
+const method = this.parseId();
+const methodDefinition = valueTypeDefinition.methods[method]
+if (!valueTypeDefinition.methods[method]) {
+    throw new Error(`Invalid method '${method}()' for type ${valueTypeDefinition.name}`);
+}
+const parameters = this.parseParameters(methodDefinition.signature);
+value = methodDefinition.definition.apply(this.runtime, [value].concat(parameters));
+```
+
+Good, don't you think?
 
 Number operations
 -----------------
@@ -266,31 +258,31 @@ The basic number operations we need to support are add, subtract, equals, lessTh
 ```js
 add: {
     type: 'function',
-    signature: ['self', 'number'],
+    signature: ['number'],
     returns: 'number',
     value: (a, b) => a + b,
 },
 sub: {
     type: 'function',
-    signature: ['self', 'number'],
+    signature: ['number'],
     returns: 'number',
     value: (a, b) => a - b,
 },
 equals: {
     type: 'function',
-    signature: ['self', 'number'],
+    signature: ['number'],
     returns: 'boolean',
     value: (a, b) => a === b
 },
 largerThan: {
     type: 'function',
-    signature: ['self', 'number'],
+    signature: ['number'],
     returns: 'boolean',
     value: (a, b) => a > b
 },
 lesserThan: {
     type: 'function',
-    signature: ['self', 'number'],
+    signature: ['number'],
     returns: 'boolean',
     value: (a, b) => a < b
 }
@@ -413,13 +405,13 @@ And add to string builtins:
 ```js
 concat: {
     type: 'function',
-    signature: ['self', 'string'],
+    signature: ['string'],
     returns: 'string',
     value: (s, z) => s + z
 },
 slice: {
     type: 'function',
-    signature: ['self', 'number', 'number'],
+    signature: ['number', 'number'],
     returns: 'string',
     value: (s, o, l) => s.substr(o, l)
 },
@@ -431,19 +423,19 @@ getLength: {
 },
 equals: {
     type: 'function',
-    signature: ['self', 'string'],
+    signature: ['string'],
     returns: 'boolean',
     value: (s, z) => s === z,
 },
 isBefore: {
     type: 'function',
-    signature: ['self', 'string'],
+    signature: ['string'],
     returns: 'boolean',
     value: (s, z) => s < z,
 },
 isAfter: {
     type: 'function',
-    signature: ['self', 'string'],
+    signature: ['string'],
     returns: 'boolean',
     value: (s, z) => s > z,
 }

@@ -1,0 +1,14 @@
+writeln(true.not().toString());
+writeln(false.not().toString());
+writeln(true.and(true).toString());
+writeln(true.and(false).toString());
+writeln(false.and(true).toString());
+writeln(false.and(false).toString());
+writeln(true.or(true).toString());
+writeln(true.or(false).toString());
+writeln(false.or(true).toString());
+writeln(false.or(false).toString());
+writeln(true.equals(true).toString());
+writeln(true.equals(false).toString());
+writeln(false.equals(true).toString());
+writeln(false.equals(false).toString());
