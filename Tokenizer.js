@@ -1,6 +1,6 @@
 exports = module.exports = class Tokenizer {
     constructor(text) {
-        this.pattern = /\s*(?:([\(\);])|(\w+)|\'((?:[^\']|\'\')*)\')/y;
+        this.pattern = /(?:\s|\/\*(?:[^\*]|\*[^\/])*\*\/)*(?:([\(\);])|(\w+)|\'((?:[^\']|\'\')*)\')/y;
         this.text = text;
     }
 
