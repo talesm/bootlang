@@ -1,0 +1,15 @@
+{
+  "name": "bootstrap-lang",
+  "version": "0.0.1",
+  "description": "A tiny self-bootstraped language",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "keywords": [
+    "language"
+  ],
+  "author": "talesm",
+  "license": "GPL-3.0",
+  "devDependencies": {}
+}
