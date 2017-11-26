@@ -1,33 +1,40 @@
 Parsing a Hello World
 =====================
 
-The most basic stuff a language must to support is input and output. Starting by the later, the most obvious thing to do  is to create a hello word. For now our syntax to this is:
+The most basic stuff a language must to support is input and output. Starting by the later, the most obvious thing to do  is to create a "hello word". It is just the classic way to do it. So, for now our goal is to parse:
 
 ```bootlang
-write('Hello World');
+writeln('Hello World');
 ```
 
-A simple and effective way to do it. We need only be able to parse a function call and a string.
+The syntax, on [EBNF+][], is simply:
+
+```ebnf+
+program = 'writeln', '(', "'Hello World", ')', ';' ;
+```
+
+
+A simple and effective way to do it is. We need only be able to parse a function call and a string.
 Firstly, we need a lexical analysins, and we do it on the following js class:
 
 ```js
-class Tokenizer {
+exports = module.exports = class Tokenizer {
     constructor(text) {
-        this.pattern = /\s*([\(\);]|\w+|\'(?:[^\']|\'\')*\')/y;
+        this.pattern = /\s*([\(\);])|(writeln)|('Hello World')/y;
         this.text = text;
     }
 
     next() {
         const result = this.pattern.exec(this.text);
         if (result) {
-            return result[1];
+            return result[1] || result[2] || result[3];
         }
         return null;
     }
 }
 ```
 
-The *sticky* tag does an exact match, with no jump. The `\s*` is to allow space between tokens. In the end it returns all the tokens it found, each being returned after next() is called. Our parse looks like the following
+The *sticky* tag does an exact match, with no jump. The `\s*` is to allow space between tokens. In the end it returns all the tokens it found, each being returned after next() is called. Our parser looks like the following
 
 ```js
 class Parser {
@@ -191,3 +198,5 @@ write('Hi ''Mundo''!');
 ```
 
 And that is the end of our hello world parsing. As an exercise, would you implement a comment feature? Try to do it! (Or see the source code, I don't own you). See you next lesson.
+
+[ebnf+]: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido
