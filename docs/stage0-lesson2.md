@@ -87,41 +87,47 @@ parseMessage() {
 }
 ```
 
-Well, this is enough to just the toString(), but does not scale well. Almost all types support toString(), but other methods aren't that universal, so we should check the value's type and see if it support the method. Also is good to have that checking information in some sort of *context* object, that know the types and stuff. So we create the Built.js file with the content:
+Well, this is enough to just the toString(), but does not scale well. Almost all types support toString(), but other methods aren't that universal, so we should check the value's type and see if it support the method. Also is good to have that checking information in some sort of *context* object, that know the types and stuff. So we create the `Builtin.js` file with the content:
 
 ```js
 exports.number = {
     type: 'type',
+    name: 'number',
     methods: {
         toString: {
             type: 'function',
-            signature: ['self'],
+            name: 'toString',
+            signature: [],
             returns: 'string',
-            value: n => n.toString()
+            definition: n => n.toString()
         }
     }
 }
 
 exports.boolean = {
     type: 'type',
+    name: 'boolean',
     methods: {
         toString: {
             type: 'function',
-            signature: ['self'],
+            name: 'toString',
+            signature: [],
             returns: 'string',
-            value: n => n.toString()
+            definition: n => n.toString()
         }
     }
 }
 
 exports.string = {
     type: 'type',
+    name: 'string',
     methods: {
         toString: {
             type: 'function',
-            signature: ['self'],
+            name: 'toString',
+            signature: [],
             returns: 'string',
-            value: n => n
+            definition: n => n
         }
     }
 }
@@ -129,13 +135,21 @@ exports.string = {
 
 Then we require this file on our parser and append it to the ctor:
 ```js
-var builtin = require('./builtin');
+const builtin = require('./builtin');
 
 class Parser {
-    constructor(tokenProvider) {
+    constructor(text) {
         //Previous stuff here
         this.ctx = Object.create(builtin);
     }
+}
+```
+
+Create the auxiliary method:
+```js
+getType(value) {
+    const valueType = typeof value;
+    return this.ctx[valueType];
 }
 ```
 
@@ -151,13 +165,9 @@ parseMessage() {
         this.match(')');
         const valueType = typeof value;
         const valueTypeDefinition = this.ctx[valueType];
-        const methodDefinition = valueTypeDefinition.methods[method]
-        if (methodDefinition) {
-            if (methodDefinition.signature.length === 1 && methodDefinition.signature[0] === 'self') {
-                value = methodDefinition.value(value);
-            } else {
-                throw new Error('Messages with number of parameters != 0 are not implemented yet.');
-            }
+        const methodDescription = valueTypeDefinition.methods[method]
+        if (methodDescription) {
+            value = methodDescription.definition(value);
         } else {
             throw new Error(`Invalid method '${method}()' for type ${valueType}`);
         }

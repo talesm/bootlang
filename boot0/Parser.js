@@ -1,10 +1,12 @@
 const Tokenizer = require('./Tokenizer')
+const builtin = require('./builtin')
 
 exports = module.exports = class Parser {
     constructor(text, runtime) {
         this.tokenizer = new Tokenizer(text);
         this.runtime = runtime;
         this.next();
+        this.ctx = Object.create(builtin);
     }
 
     parse() {
@@ -22,19 +24,25 @@ exports = module.exports = class Parser {
     }
 
     parseMessage() {
-        const value = this.parseValue();
-        if (this.nextToken.type === '.') {
+        let value = this.parseValue();
+        while (this.nextToken.type === '.') {
+            const valueTypeDefinition = this.getType(value);
             this.match('.');
             const method = this.parseId();
+            const methodDefinition = valueTypeDefinition.methods[method]
+            if (!valueTypeDefinition.methods[method]) {
+                throw new Error(`Invalid method '${method}()' for type ${valueTypeDefinition.name}`);
+            }
             this.match('(');
             this.match(')');
-            if (method === 'toString') {
-                return value.toString();
-            }
-            throw new Error(`Invalid method name ${method}`);
-        } else {
-            return value;
+            value = methodDefinition.definition(value);
         }
+        return value;
+    }
+
+    getType(value) {
+        const valueType = typeof value;
+        return this.ctx[valueType];
     }
 
     parseValue() {
