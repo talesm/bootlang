@@ -34,36 +34,38 @@ exports = module.exports = class Tokenizer {
 }
 ```
 
-The *sticky* tag does an exact match, with no jump. The `\s*` is to allow space between tokens. In the end it returns all the tokens it found, each being returned after next() is called. Our parser looks like the following
+The *sticky* tag does an exact match, with no jump. The `\s*` is to allow space between tokens. In the end it returns all the tokens it found, each being returned after next() is called. Our parser looks like the following:
 
 ```js
-class Parser {
-    constructor(tokenProvider) {
-        this.tokenProvider = tokenProvider;
+const Tokenizer = require('./Tokenizer')
+
+exports = module.exports = class Parser {
+    constructor(text) {
+        this.tokenizer = new Tokenizer(text);
     }
 
     parse() {
-        this.match('write');
+        this.match('writeln');
         this.match('(');
         this.match('\'Hello World\'');
         this.match(')');
         this.match(';');
-        process.out.print('Hello World');
+        console.log('Hello World');
     }
 
     match(expected) {
-        const received = this.tokenProvider();
+        const received = this.tokenizer.next();
         if (expected !== received) {
             throw new Error(`Expected ${expected}, got ${received}`);
         }
     }
 }
 ```
-The parser has to generate no code as it alwasys will generate the same effect, we just need to check if the syntax is right. The problem is, we can only print hello world. 
 
-Printing any hello world
-------------------------
+Our parser is also our interpreter here. The parser has to generate no code as it alwasys will generate the same effect, we just need to check if the syntax is right. The problem is, we can only print hello world. 
 
+Printing any String
+-------------------
 We should be able to print something more. We want to print any string. To do
 that we must be able to identify what is a string and what is its contents. First we must adjust our lexer:
 
@@ -96,10 +98,7 @@ And them we adjust our parser too:
 
 ```js
 exports = module.exports = class Parser {
-    constructor(tokenProvider) {
-        this.tokenProvider = tokenProvider;
-        this.nextToken = tokenProvider();
-    }
+    /* ... */
 
     parse() {
         let result = '';
