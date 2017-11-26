@@ -9,12 +9,20 @@ exports = module.exports = class Parser {
 
     parse() {
         while (this.nextToken !== null) {
-            this.matchWord('writeln');
+            const callee = this.parseId();
+            if (!this.runtime[callee]) {
+                throw new Error(`Function ${callee} not defined`)
+            }
             this.match('(');
-            this.runtime.writeln(this.parseString());
+            const param = this.parseString();
+            this.runtime[callee](param);
             this.match(')');
             this.match(';');
         }
+    }
+
+    parseId() {
+        return this.match('id').value;
     }
 
     parseString() {

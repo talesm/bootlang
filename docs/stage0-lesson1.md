@@ -141,26 +141,38 @@ exports = module.exports = class Parser {
 }
 ```
 
+Our interpretor can be like this:
+```js
+const parser = new Parser(fs.readFileSync(process.argv[2]));
+
+const runtime = {
+    writeln(text) {
+        process.stdout.write(text + '\n');
+    },
+}
+parser.parse(runtime)
+```
+
 Now we can call programs like these:
 
 ```bootlang
-write('Hello World!!!');
+writeln('Hello World!!!');
 ```
 
 Or These:
 ```bootlang
-write('Hi ''Mundo''!');
+writeln('Hi ''Mundo''!');
 ```
 
 Or even these:
 ```bootlang
-write('Grettings, ');
-write('globe!');
+writeln('Grettings, ');
+writeln('globe!');
 ```
 More than one output function
 -----------------------------
 
-We still have a last adjustment to do. What if instead of just `write`, we also had `writeln` to put a new line after printing. It is a good and even necessary, as our string type do not hava any escape code for new line. 
+We still have a last adjustment to do. What if instead of just `writeln`, we also had `write` that does not put a end line after after printing.
 
 First, we need to create this small method on our Parser class. It is very similar to our `parseString()`.
 ```js
@@ -172,21 +184,14 @@ parseId() {
 Then we change the content of the while inside our `parse()` method:
 ```js
 const callee = this.parseId();
+if (!runtime[callee]) {
+    throw new Error(`Function ${callee} not defined`)
+}
 this.match('(');
 const param = this.parseString();
+runtime[callee](param);
 this.match(')');
 this.match(';');
-switch (callee) {
-    case 'write':
-        result += param;
-        break;
-
-    case 'writeln':
-        result += param + '\n';
-        break;
-    default:
-        throw new Error(`Invalid call: ${callee} not declared`)
-}
 ```
 
 Of course this *switch* will not scale well and we will have to replace it later, but for now is good enough. Let's our future selves deal with it. Now we can have code like this:
