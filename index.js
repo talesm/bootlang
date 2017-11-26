@@ -1,4 +1,4 @@
-var Interpreter = require('./src/boot0/interpreter');
+var Parser = require('./boot0/Parser');
 var fs = require('fs');
 
 const dir = './tests/boot0/'
@@ -16,7 +16,7 @@ fs.readdir(dir, (err, files) => {
         if (files.indexOf(radical + '.input') !== -1) {
             input = fs.readFileSync(inputFile, 'utf8');
         }
-        const interpreter = new Interpreter({
+        const runtime = {
             writeln(text) {
                 result += text + '\n';
             },
@@ -38,9 +38,9 @@ fs.readdir(dir, (err, files) => {
                     return result;
                 }
             }
-        });
+        };
         try {
-            interpreter.run(source);
+            new Parser(source, runtime).parse();
             const expected = fs.readFileSync(dir + radical + '.expected', 'utf8');
             if (expected === result) {
                 console.log(`${file}: ok`);

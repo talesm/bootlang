@@ -98,19 +98,19 @@ And them we adjust our parser too:
 
 ```js
 exports = module.exports = class Parser {
-    /* ... */
+    constructor(text) {
+        this.tokenizer = new Tokenizer(text);
+        this.next();
+    }
 
-    parse() {
-        let result = '';
-
+    parse(runtime) {
         while (this.nextToken !== null) {
-            this.matchWord('write');
+            this.matchWord('writeln');
             this.match('(');
-            result += this.parseString();
+            runtime.writeln(this.parseString());
             this.match(')');
             this.match(';');
         }
-        return result;
     }
 
     parseString() {
@@ -135,7 +135,7 @@ exports = module.exports = class Parser {
 
     next() {
         const token = this.nextToken;
-        this.nextToken = this.tokenProvider();
+        this.nextToken = this.tokenizer.next();
         return token;
     }
 }
