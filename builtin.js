@@ -42,6 +42,30 @@ exports.boolean = {
             signature: [],
             returns: 'string',
             definition: n => n.toString()
+        },
+        not: {
+            type: 'function',
+            signature: [],
+            returns: 'boolean',
+            definition: n => !n
+        },
+        and: {
+            type: 'function',
+            signature: ['boolean'],
+            returns: 'boolean',
+            definition: (a, b) => a && b
+        },
+        or: {
+            type: 'function',
+            signature: ['boolean'],
+            returns: 'boolean',
+            definition: (a, b) => a || b
+        },
+        equals: {
+            type: 'function',
+            signature: ['boolean'],
+            returns: 'boolean',
+            definition: (a, b) => a === b
         }
     }
 }
