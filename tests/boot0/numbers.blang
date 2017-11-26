@@ -1,0 +1,10 @@
+writeln(3.add(2).toString());
+writeln(3.sub(2).toString());
+writeln(3.equals(3).toString());
+writeln(3.equals(2).toString());
+writeln(3.isAfter(2).toString());
+writeln(3.isAfter(3).toString());
+writeln(2.isBefore(3).toString());
+writeln(3.isBefore(3).toString());
+writeln(number.parseOrPanic('9').add(2).toString());
+writeln(number.parseOrPanic('42').sub(21).toString());

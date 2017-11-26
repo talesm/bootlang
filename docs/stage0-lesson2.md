@@ -199,25 +199,25 @@ not: {
     type: 'function',
     signature: [],
     returns: 'boolean',
-    value: n => !n
+    definition: n => !n
 },
 and: {
     type: 'function',
     signature: ['boolean'],
     returns: 'boolean',
-    value: (a, b) => a && b
+    definition: (a, b) => a && b
 },
 or: {
     type: 'function',
     signature: ['boolean'],
     returns: 'boolean',
-    value: (a, b) => a || b
+    definition: (a, b) => a || b
 },
 equals: {
     type: 'function',
     signature: ['boolean'],
     returns: 'boolean',
-    value: (a, b) => a === b
+    definition: (a, b) => a === b
 }
 ```
 
@@ -260,37 +260,45 @@ add: {
     type: 'function',
     signature: ['number'],
     returns: 'number',
-    value: (a, b) => a + b,
+    definition: (a, b) => a + b,
 },
 sub: {
     type: 'function',
     signature: ['number'],
     returns: 'number',
-    value: (a, b) => a - b,
+    definition: (a, b) => a - b,
 },
 equals: {
     type: 'function',
     signature: ['number'],
     returns: 'boolean',
-    value: (a, b) => a === b
+    definition: (a, b) => a === b
 },
-largerThan: {
+isAfter: {
     type: 'function',
     signature: ['number'],
     returns: 'boolean',
-    value: (a, b) => a > b
+    definition: (a, b) => a > b
 },
-lesserThan: {
+isBefore: {
     type: 'function',
     signature: ['number'],
     returns: 'boolean',
-    value: (a, b) => a < b
+    definition: (a, b) => a < b
 }
 ``` 
 
-Another good operation to have is a parse() method that transforms strings into numbers. We will also put it there. But this is a different kind of method. Instead of applying it on a number, we use it to **get** a number. We need a static methdod. If you look to the pattern, we will see that we reserved a space to put it, just by having the first parameter with a type other than 'self'. And so we add the two new methods:
+Another good operation to have is a parse() method that transforms strings into numbers. We will also put it there. But this is a different kind of method. Instead of applying it on a number, we use it to **get** a number. We need a static method. If you look to the pattern, we will see that we reserved a space to put it, just by having the first parameter with a type other than 'self'. And so we add this:
 
 ```js
+parseOrPanic: {
+    type: 'function',
+    name: 'parseOrPanic',
+    static: true,
+    signature: ['number'],
+    returns: 'boolean',
+    definition: (s) => +s
+}
 ```
 
 But it will not work yet, as we do not have any way to call it now. We must implement a way to call using the type instead of an instance, like this:
@@ -309,85 +317,71 @@ case 'id':
     return this.ctx[name];
 ```
 
-Create the following method:
+Then edit getType body to be like this:
 ```js
-getType(value) {
-    const rawType = typeof value;
+const rawType = typeof value;
+switch (rawType) {
+    case 'number':
+    case 'string':
+    case 'boolean':
+        return this.ctx[rawType]
+    case 'object':
+        if (value.type === 'type') {
+            return value;
+        }
+}
+throw Error(`Unknown type ${typeof value}`);
+```
+
+Then create the following method:
+
+```js
+isStatic(operand) {
+    const rawType = typeof operand;
     switch (rawType) {
-        case 'string':
         case 'number':
+        case 'string':
         case 'boolean':
-            return [this.ctx[rawType], false];
+            return false;
         case 'object':
-            if (value.type === 'type') {
-                return [value, true];
+            if (operand.type === 'type') {
+                return true;
             }
-        default:
-            throw new Error(`Unknown rawType ${rawType}`);
     }
+    throw Error(`Unknown type ${typeof operand}`);
 }
 ```
 
-And replace parserMessage();
+And replace parserMessage()'s loop:
 
 ```js
-parseMessage() {
-    let value = this.parseValue();
-    while (this.nextToken.type === '.') {
-        this.match('.');
-        const method = this.parseId();
-        this.match('(');
-        const parameters = [];
-        if (this.nextToken.type !== ')') {
-            parameters.push(this.parseMessage());
-        }
-        this.match(')');
-        const [valueTypeDefinition, isStatic] = this.getType(value);
-        const methodDefinition = valueTypeDefinition.methods[method]
-        if (methodDefinition) {
-            const signature = methodDefinition.signature;
-            if (isStatic) {
-                if (signature.length > 0 && signature[0] === 'self') {
-                    throw new Error(`Can not call non-static messages through type.`);
-                }
-                if (parameters.length !== signature.length) {
-                    throw new Error(`Expected ${signature.length} parameter(s), got ${parameters.length}`);
-                }
-                for (let i = 0; i < parameters.length; ++i) {
-                    if (typeof parameters[i] !== signature[i]) {
-                        throw new Error(`Expected parameter ${i + 1} of type ${signature[i]}, got ${typeof parameters[i]}`);
-                    }
-                }
-                value = methodDefinition.value.apply(null, parameters);
-            } else {
-                if (signature.length === 0 || signature[0] !== 'self') {
-                    throw new Error(`Can not call static messages through objects.\n Try '${valueTypeDefinition.name}.${method}'(/*...*/) instead.`);
-                }
-                if (parameters.length + 1 !== signature.length) {
-                    throw new Error(`Expected ${signature.length - 1} parameter(s), got ${parameters.length}`);
-                }
-                for (let i = 0; i < parameters.length; ++i) {
-                    if (typeof parameters[i] !== signature[i + 1]) {
-                        throw new Error(`Expected parameter ${i + 1} of type ${signature[i + 1]}, got ${typeof parameters[i]}`);
-                    }
-                }
-                value = methodDefinition.value.apply(null, [value].concat(parameters));
-            }
-        } else {
-            const valueType = valueTypeDefinition;
-            throw new Error(`Found no such method '${method}()' for type ${valueType}`);
-        }
+const valueTypeDefinition = this.getType(value);
+this.match('.');
+const method = this.parseId();
+const methodDefinition = valueTypeDefinition.methods[method]
+if (!valueTypeDefinition.methods[method]) {
+    throw new Error(`Invalid method '${method}()' for type ${valueTypeDefinition.name}`);
+}
+const parameters = this.parseParameters(methodDefinition.signature);
+if (this.isStatic(value)) {
+    if (!methodDefinition.static) {
+        throw Error('Can not call a instance method as a static method');
     }
-    return value;
+    value = methodDefinition.definition.apply(this.runtime, parameters);
+} else {
+    if (methodDefinition.static) {
+        throw Error('Can not call a static method as a instance method');
+    }
+    value = methodDefinition.definition.apply(this.runtime, [value].concat(parameters));
 }
 ```
 
-Yes, it is becoming gigantic, but we won't chage it much anymore.
+And done.
 
 Strings
 -------
 The last one is strings. The basic string operations are concatenate, slice, compare (equals, lessThan, largerThan) an size.
-An there is...
+An is good to have an toAscii/fromAscii pairs
 
 Change piece:
 
