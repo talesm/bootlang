@@ -14,11 +14,39 @@ exports = module.exports = class Parser {
                 throw new Error(`Function ${callee} not defined`)
             }
             this.match('(');
-            const param = this.parseString();
+            const param = this.parseMessage();
             this.runtime[callee](param);
             this.match(')');
             this.match(';');
         }
+    }
+
+    parseMessage() {
+        const value = this.parseValue();
+        if (this.nextToken.type === '.') {
+            this.match('.');
+            const method = this.parseId();
+            this.match('(');
+            this.match(')');
+            if (method === 'toString') {
+                return value.toString();
+            }
+            throw new Error(`Invalid method name ${method}`);
+        } else {
+            return value;
+        }
+    }
+
+    parseValue() {
+        switch (this.nextToken.type) {
+            case 'string':
+            case 'number':
+            case 'boolean':
+                break;
+            default:
+                throw new Error(`Expected value, got ${this.nextToken.type}`);
+        }
+        return this.next().value;
     }
 
     parseId() {

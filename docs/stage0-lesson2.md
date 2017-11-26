@@ -1,12 +1,12 @@
-Numbers and booleans
-====================
+Primitive Types
+===============
 
-We that we have strings, we should add more types. Specifically numbers (here integers) and booleans. 
+We already have strings, we should add more types. Specifically numbers (here integers) and booleans. 
 The first thing to do ia add support to them on our tokenizer:
 
 Replace the pattern on Tokenizer class for this:
 ```js
-/(?:\s|\/\*(?:[^\*]|\*[^\/])*\*\/)*(?:([\(\);\.,])|(true|false)|(\d+)|(\w+)|\'((?:[^\']|\'\')*)\')/y
+/(?:\s|\/\*(?:[^\*]|\*[^\/])*\*\/)*(?:([\(\);\.=:,{}\[\]])|(true|false)|(\d+)|(\w+)|\'((?:[^\']|\'\')*)\')/y
 ```
 
 (It **is** getting bigger and hard to read, but I think it still pratical).
