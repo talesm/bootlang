@@ -26,6 +26,16 @@ exports = module.exports = class Parser {
         this.match(';');
     }
 
+    parseFunction() {
+        const callee = this.parseId();
+        const functionDefinition = this.ctx[callee];
+        if (!functionDefinition || functionDefinition.type !== 'function') {
+            throw new Error(`Function ${callee} not defined`)
+        }
+        const parameters = this.parseParameters(functionDefinition.signature);
+        functionDefinition.definition.apply(this.runtime, parameters);
+    }
+
     parseMessage() {
         let value = this.parseValue();
         while (this.nextToken.type === '.') {
