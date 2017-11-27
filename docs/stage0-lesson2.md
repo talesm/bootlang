@@ -423,14 +423,29 @@ isAfter: {
 }
 ```
 
-Then change piece:
+Then change parseParameters like this:
 
 ```js
+const parameters = [];
+this.match('(');
 if (this.nextToken.type !== ')') {
     parameters.push(this.parseMessage());
     while (this.nextToken.type === ',') {
-        this.next();
+        this.match(',');
         parameters.push(this.parseMessage());
     }
 }
+this.match(')');
+if (parameters.length !== signature.length) {
+    throw Error(`Expected ${signature.length} parameters, got ${parameters.length}`);
+}
+for (let i = 0; i < parameters.length; ++i) {
+    const paramType = this.getType(parameters[i]).name;
+    if (paramType !== signature[i]) {
+        throw Error(`Expected parameter ${i + 1} with type ${signature[i]} got type ${paramType}`);
+    }
+}
+return parameters;
 ```
+
+And done! We have builtin types and operations enough to continue. As a challenge, try to edit the parse() method to handle function's parameters with our parseParameters().
