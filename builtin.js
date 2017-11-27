@@ -18,6 +18,16 @@ exports.writeln = {
     }
 }
 
+exports.readln = {
+    type: 'function',
+    name: 'readln',
+    signature: [],
+    returns: 'void',
+    definition: function (text) {
+        return this.readln();
+    }
+}
+
 exports.number = {
     type: 'type',
     name: 'number',
