@@ -1,5 +1,6 @@
 const Parser = require('./boot0/Parser');
 const fs = require('fs');
+const readlineSync = require('readline-sync');
 
 const runtime = {
     writeln(text) {
@@ -8,6 +9,10 @@ const runtime = {
 
     write(text) {
         process.stdout.write(text);
+    },
+
+    readln() {
+        return readlineSync.question('');
     }
 }
 

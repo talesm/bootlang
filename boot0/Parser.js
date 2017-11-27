@@ -16,24 +16,47 @@ exports = module.exports = class Parser {
     }
 
     parseStatement() {
-        const callee = this.parseId();
-        const functionDefinition = this.ctx[callee];
-        if (!functionDefinition || functionDefinition.type !== 'function') {
-            throw new Error(`Function ${callee} not defined`)
+        const word = this.parseId();
+        if (word === 'let') {
+            const nextWord = this.parseId();
+            const mutable = nextWord === 'mutable';
+            const bindingName = mutable ? this.parseId() : nextWord;
+            this.match('=');
+            const value = this.parseMessage();
+            if (this.ctx[bindingName]) {
+                throw new Error('can not redeclare binding ' + bindingName)
+            }
+            this.ctx[bindingName] = {
+                type: 'binding',
+                valueType: this.getType(value),
+                value,
+                mutable,
+            }
+            this.match(';')
+        } else if (this.nextToken.type == '=') {
+            this.match('=');
+            const value = this.parseMessage();
+            const binding = this.ctx[word];
+            if (!binding) {
+                throw Error(`Variable ${word} not defined`);
+            }
+            const valueType = this.getType(value);
+            if (valueType !== binding.valueType) {
+                throw Error(`Assignment to ${word} expected ${binding.valueType.name}, got ${valueType.name}`);
+            }
+            binding.value = value;
+            this.match(';')
+        } else if (this.nextToken.type == '(') {
+            const functionDefinition = this.ctx[word];
+            if (!functionDefinition || functionDefinition.type !== 'function') {
+                throw new Error(`Function ${word} not defined`)
+            }
+            const parameters = this.parseParameters(functionDefinition.signature);
+            functionDefinition.definition.apply(this.runtime, parameters);
+            this.match(';')
+        } else {
+            throw Error('Invalid Statement ' + word);
         }
-        const parameters = this.parseParameters(functionDefinition.signature);
-        functionDefinition.definition.apply(this.runtime, parameters);
-        this.match(';');
-    }
-
-    parseFunction() {
-        const callee = this.parseId();
-        const functionDefinition = this.ctx[callee];
-        if (!functionDefinition || functionDefinition.type !== 'function') {
-            throw new Error(`Function ${callee} not defined`)
-        }
-        const parameters = this.parseParameters(functionDefinition.signature);
-        functionDefinition.definition.apply(this.runtime, parameters);
     }
 
     parseMessage() {
@@ -95,17 +118,32 @@ exports = module.exports = class Parser {
             case 'number':
             case 'boolean':
                 break;
-            case 'id':
-                const name = this.parseId();
-                if (!this.ctx[name]) {
-                    throw new Error(`Name ${name} not declared`);
-                }
-                return this.ctx[name];
             case '(':
                 this.match('(');
                 const value = this.parseMessage();
                 this.match(')');
                 return value;
+            case 'id':
+                const name = this.parseId();
+                const definition = this.ctx[name];
+                if (!definition) {
+                    throw new Error(`Name ${name} not declared`);
+                }
+                if (this.nextToken.type === '(') {
+                    if (definition.type === 'function') {
+                        const parameters = this.parseParameters(definition.signature);
+                        return definition.definition.apply(this.runtime, parameters);
+                    }
+                    throw new Error(`Expected function, got ${definition.type}`);
+                } else {
+                    if (definition.type === 'type') {
+                        return this.ctx[name];
+                    }
+                    if (definition.type === 'binding') {
+                        return this.ctx[name].value;
+                    }
+                    throw new Error(`Expected type name or binding, got ${definition.type}`);
+                }
             default:
                 throw new Error(`Expected value, got ${this.nextToken.type}`);
         }
@@ -130,6 +168,10 @@ exports = module.exports = class Parser {
             case 'object':
                 if (value.type === 'type') {
                     return value;
+                } else if (value.type === 'binding') {
+                    return value.valueType;
+                } else {
+                    throw Error(`Invalid type ${value.type}`);
                 }
         }
         throw Error(`Unknown type ${typeof value}`);

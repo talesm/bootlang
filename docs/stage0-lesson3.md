@@ -8,71 +8,88 @@ let a = 5; /* Constant */
 let mutable b = 'Oi'; /* Variable*/
 ```
 
-Good? Good! First, we need to add '=' as a recognized symbol. You should be able to do that now. Then we need to edit our parse method's loop to this:
+First edit our parse method to this:
 
 ```js
-
-while (this.nextToken !== null) {
-    const word = this.parseId();
-    if (this.nextToken.type === '(') {
-        const callee = word;
-        this.match('(');
-        const param = this.parseMessage();
-        this.match(')');
+parse(runtime) {
+    this.runtime = runtime;
+    while (this.nextToken !== null) {
+        this.parseStatement();
         this.match(';');
-        const calleeDefinition = this.ctx[callee];
-        if (calleeDefinition && calleeDefinition.type === 'function') {
-            if (calleeDefinition.signature.length !== 1) {
-                throw new Error('Function call with number of parameters != 1 are not implemented yet.');
-            }
-            const paramType = typeof param;
-            if (paramType !== calleeDefinition.signature[0]) {
-                throw new Error(`Expected parameter 0 of type ${calleeDefinition.signature[0]}, got ${paramType} on function ${callee}`);
-            }
-            calleeDefinition.value.call(runtime, param);
-        } else {
-            throw new Error(`Function ${callee} not defined`);
-        }
-    } else if (word === 'let') {
+    }
+}
+```
+
+Then this new method:
+```js
+parseStatement() {
+    const word = this.parseId();
+    if (word === 'let') {
         const nextWord = this.parseId();
         const mutable = nextWord === 'mutable';
         const bindingName = mutable ? this.parseId() : nextWord;
         this.match('=');
         const value = this.parseMessage();
-        this.match(';');
         if (this.ctx[bindingName]) {
             throw new Error('can not redeclare binding ' + bindingName)
         }
         this.ctx[bindingName] = {
             type: 'binding',
-            valueType: this.getType(value)[0],
+            valueType: this.getType(value),
             value,
             mutable,
         }
-    } else if (this.ctx[word]) {
+    } else if (this.nextToken.type == '=') {
         this.match('=');
         const value = this.parseMessage();
-        this.match(';');
         const binding = this.ctx[word];
-        if (binding.type !== 'binding' || !binding.mutable) {
-            throw new Error(`Symbol ${word} is not a mutable binding`);
+        if (!binding) {
+            throw Error(`Variable ${word} not defined`);
+        }
+        const valueType = this.getType(value);
+        if (valueType !== binding.valueType) {
+            throw Error(`Assignment to ${word} expected ${binding.valueType.name}, got ${valueType.name}`);
         }
         binding.value = value;
+    } else if (this.nextToken.type == '(') {
+        const functionDefinition = this.ctx[word];
+        if (!functionDefinition || functionDefinition.type !== 'function') {
+            throw new Error(`Function ${word} not defined`)
+        }
+        const parameters = this.parseParameters(functionDefinition.signature);
+        functionDefinition.definition.apply(this.runtime, parameters);
     } else {
-        throw new Error(`Unexpected symbol: ${word}. Did you forget to declare it?`);
+        throw Error('Invalid Statement ' + word);
     }
 }
+```
+
+Then our getType's case 'object' to this:
+```js
+case 'object':
+    if (value.type === 'type') {
+        return value;
+    } else if (value.type === 'binding') {
+        return value.valueType;
+    } else {
+        throw Error(`Invalid type ${value.type}`);
+    }
 ```
 
 Then our parseValue's case 'id' to this:
 ```js
 case 'id':
     const name = this.parseId();
-    const contextValue = this.ctx[name];
-    if (!contextValue) {
+    const definition = this.ctx[name];
+    if (!definition) {
         throw new Error(`Name ${name} not declared`);
     }
-    return contextValue.type === 'type' ? contextValue : contextValue.value;
+    if (definition.type === 'type') {
+        return this.ctx[name];
+    }
+    if (definition.type === 'binding') {
+        return this.ctx[name].value;
+    }
 ```
 
 And now we can execute code like this:
@@ -89,7 +106,61 @@ writeln(s);
 A readln function
 -----------------
 
-Now is time to add a readln function. We already have a place to store a value so it will be useful. The function itself is very easy to put, but we need to reestructure our parse class to add the necessary flexibility.
+Now is time to add a readln function. We already have a place to store a value so it will be useful. The function itself is very easy to put:
 
-That is the code:
-....
+```js
+exports.readln = {
+    type: 'function',
+    name: 'readln',
+    signature: [],
+    returns: 'void',
+    definition: function (text) {
+        return this.readln();
+    }
+}
+```
+
+But we can't call functions inside parameters, so we modify our parseValue's "id" case to this:
+```js
+const name = this.parseId();
+const definition = this.ctx[name];
+if (!definition) {
+    throw new Error(`Name ${name} not declared`);
+}
+if (this.nextToken.type === '(') {
+    if (definition.type === 'function') {
+        const parameters = this.parseParameters(definition.signature);
+        return definition.definition.apply(this.runtime, parameters);
+    }
+    throw new Error(`Expected function, got ${definition.type}`);
+} else {
+    if (definition.type === 'type') {
+        return this.ctx[name];
+    }
+    if (definition.type === 'binding') {
+        return this.ctx[name].value;
+    }
+    throw new Error(`Expected type name or binding, got ${definition.type}`);
+}
+```
+
+We need also to modify our interpreter's runtime to add this function.
+
+```js
+const readlineSync = require('readline-sync');
+/* ... */
+const runtime = {
+    /* ... */
+    readln() {
+        return readlineSync.question('');
+    }
+}
+/* ... */
+```
+Or something similar to it. The realine-sync is an externa package, so if you choose to use it you need to install it:
+
+```bash
+$ npm install readline-sync --save
+```
+
+And that's it.

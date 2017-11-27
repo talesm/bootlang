@@ -1,0 +1,9 @@
+let a = 5;
+writeln(a.toString());
+let mutable s = 'Hi';
+writeln(s);
+s = 'Hello';
+writeln(s);
+let b = number.parseOrPanic(readln());
+let c = number.parseOrPanic(readln());
+writeln(b.add(c).toString());
