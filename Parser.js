@@ -58,8 +58,21 @@ exports = module.exports = class Parser {
         this.match('(');
         if (this.nextToken.type !== ')') {
             parameters.push(this.parseMessage());
+            while (this.nextToken.type === ',') {
+                this.match(',');
+                parameters.push(this.parseMessage());
+            }
         }
         this.match(')');
+        if (parameters.length !== signature.length) {
+            throw Error(`Expected ${signature.length} parameters, got ${parameters.length}`);
+        }
+        for (let i = 0; i < parameters.length; ++i) {
+            const paramType = this.getType(parameters[i]).name;
+            if (paramType !== signature[i]) {
+                throw Error(`Expected parameter ${i + 1} with type ${signature[i]} got type ${paramType}`);
+            }
+        }
         return parameters;
     }
 

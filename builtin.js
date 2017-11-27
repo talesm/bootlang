@@ -63,7 +63,7 @@ exports.number = {
             type: 'function',
             name: 'parseOrPanic',
             static: true,
-            signature: ['number'],
+            signature: ['string'],
             returns: 'boolean',
             definition: (s) => +s
         }
@@ -118,6 +118,56 @@ exports.string = {
             signature: [],
             returns: 'string',
             definition: n => n
+        },
+        concat: {
+            type: 'function',
+            signature: ['string'],
+            returns: 'string',
+            definition: (s, z) => s + z
+        },
+        slice: {
+            type: 'function',
+            signature: ['number', 'number'],
+            returns: 'string',
+            definition: (s, o, l) => s.substr(o, l)
+        },
+        getLength: {
+            type: 'function',
+            signature: [],
+            returns: 'number',
+            definition: s => s.length
+        },
+        equals: {
+            type: 'function',
+            signature: ['string'],
+            returns: 'boolean',
+            definition: (s, z) => s === z,
+        },
+        isBefore: {
+            type: 'function',
+            signature: ['string'],
+            returns: 'boolean',
+            definition: (s, z) => s < z,
+        },
+        isAfter: {
+            type: 'function',
+            signature: ['string'],
+            returns: 'boolean',
+            definition: (s, z) => s > z,
+        },
+        toAscii: {
+            type: 'function',
+            signature: [],
+            returns: 'number',
+            definition: s => s.codePointAt(0),
+        },
+        fromAscii: {
+            type: 'function',
+            name: 'fromAscii',
+            static: true,
+            signature: ['number'],
+            returns: 'string',
+            definition: n => String.fromCodePoint(n),
         }
     }
 }
