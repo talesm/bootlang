@@ -11,16 +11,19 @@ exports = module.exports = class Parser {
 
     parse() {
         while (this.nextToken !== null) {
-            const callee = this.parseId();
-            if (!this.runtime[callee]) {
-                throw new Error(`Function ${callee} not defined`)
-            }
-            this.match('(');
-            const param = this.parseMessage();
-            this.runtime[callee](param);
-            this.match(')');
-            this.match(';');
+            this.parseStatement();
         }
+    }
+
+    parseStatement() {
+        const callee = this.parseId();
+        const functionDefinition = this.ctx[callee];
+        if (!functionDefinition || functionDefinition.type !== 'function') {
+            throw new Error(`Function ${callee} not defined`)
+        }
+        const parameters = this.parseParameters(functionDefinition.signature);
+        functionDefinition.definition.apply(this.runtime, parameters);
+        this.match(';');
     }
 
     parseMessage() {
@@ -88,6 +91,11 @@ exports = module.exports = class Parser {
                     throw new Error(`Name ${name} not declared`);
                 }
                 return this.ctx[name];
+            case '(':
+                this.match('(');
+                const value = this.parseMessage();
+                this.match(')');
+                return value;
             default:
                 throw new Error(`Expected value, got ${this.nextToken.type}`);
         }
