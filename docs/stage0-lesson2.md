@@ -381,21 +381,9 @@ And done.
 Strings
 -------
 The last one is strings. The basic string operations are concatenate, slice, compare (equals, lessThan, largerThan) an size.
-An is good to have an toAscii/fromAscii pairs
+An is good to have an toAscii/fromAscii pairs.
 
-Change piece:
-
-```js
-if (this.nextToken.type !== ')') {
-    parameters.push(this.parseMessage());
-    while (this.nextToken.type === ',') {
-        this.next();
-        parameters.push(this.parseMessage());
-    }
-}
-```
-
-And add to string builtins:
+First we have our string builtins:
 ```js
 concat: {
     type: 'function',
@@ -411,7 +399,7 @@ slice: {
 },
 getLength: {
     type: 'function',
-    signature: ['self'],
+    signature: [],
     returns: 'number',
     value: s => s.length
 },
@@ -432,5 +420,17 @@ isAfter: {
     signature: ['string'],
     returns: 'boolean',
     value: (s, z) => s > z,
+}
+```
+
+Then change piece:
+
+```js
+if (this.nextToken.type !== ')') {
+    parameters.push(this.parseMessage());
+    while (this.nextToken.type === ',') {
+        this.next();
+        parameters.push(this.parseMessage());
+    }
 }
 ```
