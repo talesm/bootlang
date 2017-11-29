@@ -1,0 +1,7 @@
+let a = 1;
+if a.equals(1) {
+    writeln('Ok');
+}
+if a.equals(2) {
+    writeln('Not Ok');
+}
