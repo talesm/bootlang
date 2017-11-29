@@ -2,11 +2,11 @@ const Tokenizer = require('./Tokenizer')
 const builtin = require('./builtin')
 
 exports = module.exports = class Parser {
-    constructor(text, runtime) {
-        this.tokenizer = new Tokenizer(text);
+    constructor(tokens, runtime, ctx) {
         this.runtime = runtime;
+        this.tokenizer = typeof tokens == 'object' ? tokens : new Tokenizer(tokens);
         this.next();
-        this.ctx = Object.create(builtin);
+        this.ctx = Object.create(ctx || builtin);
     }
 
     parse() {
@@ -33,6 +33,16 @@ exports = module.exports = class Parser {
                 mutable,
             }
             this.match(';')
+        } else if (word === 'if') {
+            const condition = this.parseMessage();
+            const block = this.parseBlock();
+            const conditionType = this.getType(condition).name;
+            if (conditionType !== 'boolean') {
+                throw Error(`If condition should be a boolean, got ${conditionType}`);
+            }
+            if (!!condition) {
+                block();
+            }
         } else if (this.nextToken.type == '=') {
             this.match('=');
             const value = this.parseMessage();
@@ -56,6 +66,36 @@ exports = module.exports = class Parser {
             this.match(';')
         } else {
             throw Error('Invalid Statement ' + word);
+        }
+    }
+
+    parseBlock() {
+        this.match('{');
+        let openBlocks = 1;
+        const tokensQueue = [];
+        while (openBlocks > 0) {
+            const token = this.next();
+            tokensQueue.push(token);
+            switch (this.nextToken.type) {
+                case '{':
+                    ++openBlocks;
+                    break;
+                case '}':
+                    --openBlocks;
+                    break;
+            }
+        }
+        this.match('}');
+        tokensQueue.push(null);
+
+        return () => {
+            let pos = 0;
+            const fakeTokenizer = {
+                next() {
+                    return tokensQueue[pos++];
+                }
+            }
+            return new Parser(fakeTokenizer, this.runtime, this.ctx).parse();
         }
     }
 
