@@ -5,3 +5,13 @@ if a.equals(1) {
 if a.equals(2) {
     writeln('Not Ok');
 }
+if a.equals(1) {
+    writeln('Ok');
+} else {
+    writeln('Not Ok');
+}
+if a.equals(2) {
+    writeln('Not Ok');
+} else {
+    writeln('Ok');
+}

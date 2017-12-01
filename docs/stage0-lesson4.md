@@ -94,7 +94,27 @@ if a.equals(2) {
 
 else
 ----
+To have a working else we need to simply check for it just after our condition, like this:
 
+```js
+const condition = this.parseMessage();
+const block = this.parseBlock();
+let elseBlock = null;
+if (this.nextToken.type === 'id' && this.nextToken.value === 'else') {
+    this.matchWord('else');
+    elseBlock = this.parseBlock();
+}
+const conditionType = this.getType(condition).name;
+if (conditionType !== 'boolean') {
+    throw Error(`If condition should be a boolean, got ${conditionType}`);
+}
+if (!!condition) {
+    block.parse(this.runtime);
+} else if (elseBlock !== null) {
+    elseBlock.parse(this.runtime);
+}
+return 'conditional';
+```
 
 else if
 -------

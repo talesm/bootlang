@@ -43,6 +43,14 @@ exports = module.exports = class Parser {
             if (!!condition) {
                 block();
             }
+            if (this.nextToken.type === 'id' && this.nextToken.value === 'else') {
+                this.matchWord('else');
+                const elseBlock = this.parseBlock();
+                if (!condition) {
+                    elseBlock();
+                }
+            }
+            return 'conditional';
         } else if (this.nextToken.type == '=') {
             this.match('=');
             const value = this.parseMessage();
