@@ -118,6 +118,70 @@ return 'conditional';
 
 else if
 -------
+To be more intuitive we also want to put something like this:
+
+```blang
+if a.equals(2) {
+    ...
+} else if a.equals(3) {
+    ...
+}
+```
+To enable it we first must create the new method:
+
+```js
+parseCondition() {
+    const tokensQueue = [];
+    while (this.nextToken.type !== '{') {
+        tokensQueue.push(this.next());
+    }
+    tokensQueue.push({ type: ';' });
+    let pos = 0;
+    const fakeTokenizer = {
+        next() {
+            return tokensQueue[pos++];
+        }
+    }
+    return new Parser(fakeTokenizer, this.ctx);
+}
+```
+
+then, we alter our if again to be like this:
+
+```js
+let condition = this.parseMessage();
+const block = this.parseBlock();
+const conditionType = this.getType(condition).name;
+if (conditionType !== 'boolean') {
+    throw Error(`If condition should be a boolean, got ${conditionType}`);
+}
+if (!!condition) {
+    block.parse(this.runtime);
+}
+while (this.nextToken.type === 'id' && this.nextToken.value === 'else') {
+    this.matchWord('else');
+    if (this.nextToken.type === 'id' && this.nextToken.value === 'if') {
+        this.matchWord('if');
+        const elifCondition = this.parseCondition();
+        const block = this.parseBlock();
+        const conditionType = this.getType(condition).name;
+        if (conditionType !== 'boolean') {
+            throw Error(`If condition should be a boolean, got ${conditionType}`);
+        }
+        if (!condition && elifCondition.parseMessage()) {
+            block.parse(this.runtime);
+            condition = true;
+        }
+    } else {
+        const elseBlock = this.parseBlock();
+        if (!condition) {
+            elseBlock.parse(this.runtime);
+        }
+        break;
+    }
+}
+return 'conditional';
+```
 
 While statement
 ===============

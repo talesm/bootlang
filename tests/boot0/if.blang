@@ -1,17 +1,50 @@
 let a = 1;
 if a.equals(1) {
-    writeln('Ok');
+    writeln('Ok1');
 }
 if a.equals(2) {
     writeln('Not Ok');
 }
 if a.equals(1) {
-    writeln('Ok');
+    writeln('Ok2');
 } else {
     writeln('Not Ok');
 }
 if a.equals(2) {
     writeln('Not Ok');
 } else {
-    writeln('Ok');
+    writeln('Ok3');
+}
+if a.equals(2) {
+    writeln('Not Ok');
+} else if a.equals(3) {
+    writeln('Not Ok');
+} else if a.equals(1) {
+    writeln('Ok4');
+} else if a.equals(10) {
+    writeln('Not Ok');
+} else {
+    writeln('Not Ok');
+}
+if a.equals(1) {
+    writeln('Ok5');
+} else if a.equals(3) {
+    writeln('Not Ok');
+} else if a.equals(1) {
+    writeln('Not Ok');
+} else if a.equals(10) {
+    writeln('Not Ok');
+} else {
+    writeln('Not Ok');
+}
+if a.equals(2) {
+    writeln('Not Ok');
+} else if a.equals(3) {
+    writeln('Not Ok');
+} else if a.equals(7) {
+    writeln('Not Ok');
+} else if a.equals(10) {
+    writeln('Not Ok');
+} else {
+    writeln('Ok6');
 }

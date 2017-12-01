@@ -34,7 +34,7 @@ exports = module.exports = class Parser {
             }
             this.match(';')
         } else if (word === 'if') {
-            const condition = this.parseMessage();
+            let condition = this.parseMessage();
             const block = this.parseBlock();
             const conditionType = this.getType(condition).name;
             if (conditionType !== 'boolean') {
@@ -43,11 +43,22 @@ exports = module.exports = class Parser {
             if (!!condition) {
                 block();
             }
-            if (this.nextToken.type === 'id' && this.nextToken.value === 'else') {
+            while (this.nextToken.type === 'id' && this.nextToken.value === 'else') {
                 this.matchWord('else');
-                const elseBlock = this.parseBlock();
-                if (!condition) {
-                    elseBlock();
+                if (this.nextToken.type === 'id' && this.nextToken.value === 'if') {
+                    this.matchWord('if');
+                    const elifCondition = this.parseCondition();
+                    const block = this.parseBlock();
+                    if (!condition && elifCondition()) {
+                        block();
+                        condition = true;
+                    }
+                } else {
+                    const elseBlock = this.parseBlock();
+                    if (!condition) {
+                        elseBlock();
+                    }
+                    break;
                 }
             }
             return 'conditional';
@@ -75,6 +86,23 @@ exports = module.exports = class Parser {
         } else {
             throw Error('Invalid Statement ' + word);
         }
+    }
+
+    parseCondition() {
+        const tokensQueue = [];
+        while (this.nextToken.type !== '{') {
+            tokensQueue.push(this.next());
+        }
+        tokensQueue.push({ type: ';' });
+        return () => {
+            let pos = 0;
+            const fakeTokenizer = {
+                next() {
+                    return tokensQueue[pos++];
+                }
+            }
+            return new Parser(fakeTokenizer, this.runtime, this.ctx).parseMessage();
+        };
     }
 
     parseBlock() {
