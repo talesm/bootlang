@@ -16,5 +16,5 @@ const runtime = {
     }
 }
 
-const parser = new Parser(fs.readFileSync(process.argv[2]), runtime);
+const parser = new Parser(fs.readFileSync(process.argv[2], 'utf8'), runtime);
 parser.parse();
