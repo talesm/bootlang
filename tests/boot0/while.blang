@@ -1,0 +1,5 @@
+let mutable i = 0;
+while i.isBefore(5) {
+    i = i.add(1);
+    writeln(i.toString());
+}

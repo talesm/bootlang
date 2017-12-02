@@ -62,6 +62,13 @@ exports = module.exports = class Parser {
                 }
             }
             return 'conditional';
+        } else if (word === 'while') {
+            const condition = this.parseCondition();
+            const block = this.parseBlock();
+            while (!!condition()) {
+                block();
+            }
+            return 'conditional';
         } else if (this.nextToken.type == '=') {
             this.match('=');
             const value = this.parseMessage();
@@ -123,7 +130,6 @@ exports = module.exports = class Parser {
         }
         this.match('}');
         tokensQueue.push(null);
-
         return () => {
             let pos = 0;
             const fakeTokenizer = {

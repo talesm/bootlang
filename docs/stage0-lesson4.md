@@ -186,8 +186,31 @@ return 'conditional';
 While statement
 ===============
 
-continue
---------
+While is somewhat more complicated, but with the stuff we built is a lot more simple, just add this clause below the 'if' we just put there on the parseStatement method:
 
-break
------
+```js
+parseStatement(){
+    if(...) {
+    ...
+    } else if (word === 'while') {
+        const condition = this.parseCondition();
+        const block = this.parseBlock();
+        while (!!condition()) {
+            block();
+        }
+        return 'conditional';
+    } ...
+}
+```
+
+And now stuff like this works:
+
+```blang
+let mutable i = 0;
+while i.isBefore(5) {
+    i = i.add(1);
+    writeln(i.toString());
+}
+```
+
+On the next chapter we will start to think how our stage1 will be like.
