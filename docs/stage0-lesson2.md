@@ -1,7 +1,7 @@
 Primitive Types
 ===============
 
-We already have strings, we should add more types. Specifically numbers (here integers) and booleans. 
+On the last lesson we [printed stuff and used strings to do so][old source code], so we already have strings, now the most logical step is to add more types. Specifically numbers (here integers) and booleans. 
 The first thing to do ia add support to them on our tokenizer:
 
 Replace the pattern on Tokenizer class for this:
@@ -448,4 +448,11 @@ for (let i = 0; i < parameters.length; ++i) {
 return parameters;
 ```
 
-And done! We have builtin types and operations enough to continue. As a challenge, try to edit the parse() method to handle function's parameters with our parseParameters().
+And done! We have builtin types and operations enough to continue. As a challenge, try to edit the parse() method to handle function's parameters with our parseParameters(). See my [source code] for this chapter, if you want and head to [next lesson].
+
+[old source code]: https://github.com/talesm/bootlang/tree/lesson0-1
+[source code]: https://github.com/talesm/bootlang/tree/lesson0-2
+[next lesson]: ./stage0-lesson3
+[previous lesson]: ./stage0-lesson1
+
+

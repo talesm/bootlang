@@ -1,7 +1,7 @@
 Binding
 =======
 
-We have until now a glorified and uggly calculator. Right now is impossible to do one of the most basic operations: storing and loading values on variables. Let's be modern and use type induction and use something like:
+We have until now a glorified and [uggly calculator][old source code]. Right now is impossible to do one of the most basic operations: storing and loading values on variables. Let's be modern and use type induction and use something like:
 
 ```
 let a = 5; /* Constant */
@@ -163,4 +163,9 @@ Or something similar to it. The realine-sync is an externa package, so if you ch
 $ npm install readline-sync --save
 ```
 
-And that's it.
+And that's it. See my [source code] to compare with yours. And head to [next lesson].
+
+[old source code]: https://github.com/talesm/bootlang/tree/lesson0-2
+[source code]: https://github.com/talesm/bootlang/tree/lesson0-3
+[next lesson]: ./stage0-lesson4
+[previous lesson]: ./stage0-lesson2

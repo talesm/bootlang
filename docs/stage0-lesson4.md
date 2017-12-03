@@ -256,4 +256,9 @@ exports.panic = {
 }
 ```
 
-And that's it.
+And that's it, we have our stage0! See the [source code] or go to [next lesson].
+
+[old source code]: https://github.com/talesm/bootlang/tree/lesson0-3
+[source code]: https://github.com/talesm/bootlang/tree/lesson0-4
+[next lesson]: ./stage1-lesson1
+[previous lesson]: ./stage0-lesson3

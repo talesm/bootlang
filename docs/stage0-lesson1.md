@@ -201,6 +201,8 @@ writeln('Hello World');
 write('Hi ''Mundo''!');
 ```
 
-And that is the end of our hello world parsing. As an exercise, would you implement a comment feature? Try to do it! (Or see the source code, I don't own you). See you next lesson.
+And that is the end of our hello world parsing. As an exercise, would you implement a comment feature? Try to do it! (Or see the [source code], I don't own you). See you [next lesson].
 
+[source code]: https://github.com/talesm/bootlang/tree/lesson0-1
+[next lesson]: ./stage0-lesson2
 [ebnf+]: https://pt.wikipedia.org/wiki/Formalismo_de_Backus-Naur_Estendido
