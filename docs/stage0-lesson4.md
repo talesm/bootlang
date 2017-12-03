@@ -213,4 +213,47 @@ while i.isBefore(5) {
 }
 ```
 
-On the next chapter we will start to think how our stage1 will be like.
+Extra Functions
+===============
+
+Now that we have store, read, branch and loop we pretty much have a turing complete language and are ready to start our stage1, the first stage to be written on bootlang itself. However, to make our job easier, we need to create the two following functions:
+
+readOk()
+---------
+That one is simple. If the last input read was ok, it returns true, otherwise it returns false. A read rarely fails from the keyboard, but most operating systems allow redirecting the input to be from a file. When the file ends, the input fails. This method allows us to be able to detect it. First we add support to it to our runtime:
+```js
+readOk() {
+    return /*...*/;
+}
+```
+
+Then we add this new function on our builtin:
+```js
+exports.readOk = {
+    type: 'function',
+    name: 'readOk',
+    signature: [],
+    returns: 'boolean',
+    definition: function () {
+        return this.readOk();
+    }
+}
+```
+
+panic(str)
+----------
+That one is even simpler, when our code execute it, just halt imediately and print an error string:
+
+```js
+exports.panic = {
+    type: 'function',
+    name: 'panic',
+    signature: ['string'],
+    returns: 'void',
+    definition: function (err) {
+        throw Error(`Panic: ${err}`);
+    }
+}
+```
+
+And that's it.

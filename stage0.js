@@ -13,6 +13,10 @@ const runtime = {
 
     readln() {
         return readlineSync.question('');
+    },
+
+    readOk() {
+        return true;
     }
 }
 
