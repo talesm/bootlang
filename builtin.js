@@ -28,6 +28,26 @@ exports.readln = {
     }
 }
 
+exports.readOk = {
+    type: 'function',
+    name: 'readOk',
+    signature: [],
+    returns: 'boolean',
+    definition: function () {
+        return this.readOk();
+    }
+}
+
+exports.panic = {
+    type: 'function',
+    name: 'panic',
+    signature: ['string'],
+    returns: 'void',
+    definition: function (err) {
+        throw Error(`Panic: ${err}`);
+    }
+}
+
 exports.number = {
     type: 'type',
     name: 'number',
