@@ -15,7 +15,6 @@ parse(runtime) {
     this.runtime = runtime;
     while (this.nextToken !== null) {
         this.parseStatement();
-        this.match(';');
     }
 }
 ```
@@ -39,6 +38,7 @@ parseStatement() {
             value,
             mutable,
         }
+        this.match(';');
     } else if (this.nextToken.type == '=') {
         this.match('=');
         const value = this.parseMessage();
@@ -51,6 +51,7 @@ parseStatement() {
             throw Error(`Assignment to ${word} expected ${binding.valueType.name}, got ${valueType.name}`);
         }
         binding.value = value;
+        this.match(';');
     } else if (this.nextToken.type == '(') {
         const functionDefinition = this.ctx[word];
         if (!functionDefinition || functionDefinition.type !== 'function') {
@@ -58,6 +59,7 @@ parseStatement() {
         }
         const parameters = this.parseParameters(functionDefinition.signature);
         functionDefinition.definition.apply(this.runtime, parameters);
+        this.match(';');
     } else {
         throw Error('Invalid Statement ' + word);
     }

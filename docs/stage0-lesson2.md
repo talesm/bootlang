@@ -448,7 +448,7 @@ for (let i = 0; i < parameters.length; ++i) {
 return parameters;
 ```
 
-And done! We have builtin types and operations enough to continue. As a challenge, try to edit the parse() method to handle function's parameters with our parseParameters(). See my [source code] for this chapter, if you want and head to [next lesson].
+And done! We have builtin types and operations enough to continue. As a challenge, try to edit the parse() method to handle function's parameters with our parseParameters(). Also, how would you modify parseValue to handle parenthesis?. See my [source code] for this chapter, if you want and head to [next lesson].
 
 [old source code]: https://github.com/talesm/bootlang/tree/lesson0-1
 [source code]: https://github.com/talesm/bootlang/tree/lesson0-2
