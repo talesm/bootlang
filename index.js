@@ -1,5 +1,6 @@
 var Parser = require('./boot0/Parser');
 var fs = require('fs');
+const os = require('os');
 
 const dir = './tests/boot0/'
 fs.readdir(dir, (err, files) => {
@@ -18,7 +19,7 @@ fs.readdir(dir, (err, files) => {
         }
         const runtime = {
             writeln(text) {
-                result += text + '\n';
+                result += text + os.EOL;
             },
             write(text) {
                 result += text;
