@@ -12,7 +12,5 @@
   "author": "talesm",
   "license": "GPL-3.0",
   "devDependencies": {},
-  "dependencies": {
-    "readline-sync": "^1.4.7"
-  }
+  "dependencies": {}
 }
