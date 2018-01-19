@@ -149,20 +149,24 @@ if (this.nextToken.type === '(') {
 We need also to modify our interpreter's runtime to add this function.
 
 ```js
-const readlineSync = require('readline-sync');
-/* ... */
 const runtime = {
     /* ... */
     readln() {
-        return readlineSync.question('');
+        const buf = Buffer.alloc(1);
+        let result = '';
+        while (fs.readSync(0, buf, 0, 1, null) !== 0) {
+            const ch = buf.toString();
+            if (ch === '\n') {
+                return result;
+            }
+            if (ch === '\r') {
+                continue;
+            }
+            result += ch;
+        }
+        return result;
     }
 }
-/* ... */
-```
-Or something similar to it. The realine-sync is an externa package, so if you choose to use it you need to install it:
-
-```bash
-$ npm install readline-sync --save
 ```
 
 And that's it. See my [source code] to compare with yours. And head to [next lesson].
